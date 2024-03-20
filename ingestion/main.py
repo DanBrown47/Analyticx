@@ -63,24 +63,24 @@ def save_frame(image, frame_path):
     try:
         cv2.imwrite(frame_path, image)
 
-        # source_file = frame_path
-        # bucket_name = "storageone"
-        # destination_file = frame_path
+        source_file = frame_path
+        bucket_name = "storageone"
+        destination_file = frame_path
 
-        # # TODO : upload these files in another file and diffrent thread
-        # found = minio_client.bucket_exists(bucket_name)
-        # if not found:
-        #     minio_client.make_bucket(bucket_name)
-        #     print("Created bucket", bucket_name)
-        # else:
-        #     print("Bucket", bucket_name, "already exists")
+        # TODO : upload these files in another file and diffrent thread
+        found = minio_client.bucket_exists(bucket_name)
+        if not found:
+            minio_client.make_bucket(bucket_name)
+            print("Created bucket", bucket_name)
+        else:
+            pass
         
-        # print("Uploading", source_file, "as", destination_file, "to bucket", bucket_name, "...")
-        # minio_client.fput_object(
-        # bucket_name, destination_file, source_file,
-        # )
-        # print(source_file, "successfully uploaded as object", destination_file, "to bucket", bucket_name,
-        # )
+        print("Uploading", source_file, "as", destination_file, "to bucket", bucket_name, "...")
+        minio_client.fput_object(
+        bucket_name, destination_file, source_file,
+        )
+        print(source_file, "successfully uploaded as object", destination_file, "to bucket", bucket_name,
+        )
         push_to_queue(frame_path)
         os.remove(frame_path)
 

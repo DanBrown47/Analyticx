@@ -61,4 +61,4 @@ def health():
     return 'YOLO-Dectection Landscape is Healthy'
 
 connect_and_listen()  # Consider using a Thread for this
-app.run(debug=True) 
+app.run(debug=True, port=8000, host='0.0.0.0') 
