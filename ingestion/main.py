@@ -14,8 +14,8 @@ load_dotenv()
 
 # Insecure : Hardoded credentials as its local only
 minio_client = Minio("minio:9000",
-                     access_key="O22u8yhKEhqOFGKu",
-                     secret_key="Chd5l7J3VWWuJ9V17KxJgJi4Wdr24tW0",
+                     access_key="access",   
+                     secret_key="Root123$",
                      secure=False)
 
 app = Flask(__name__)
@@ -38,7 +38,8 @@ class Frames(db.Model):
     video_id = db.Column(db.Integer, db.ForeignKey('videos.id'), nullable=False)
     frame_path = db.Column(db.String(1000), nullable=False) # Minio Path
     processed = db.Column(db.Boolean, default=False)
-    text = db.Column(db.String(10000), nullable=True) 
+    text = db.Column(db.String(10000), nullable=True)
+    color = db.Column(db.String(10000), nullable=True)
 
     def __repr__(self):
         return '<Video %r>' % self.id

@@ -14,7 +14,10 @@ def np_encoder(object):
         return object.item()
     
 
-def dectect_elements(image):
+def dectect_elements(path, image):
+    # Decode path from bytes to string
+    path = path.decode('utf-8')
+
     # TODO Check for File quality [What if a URL]
     response = []
     results = model(image)  
@@ -22,7 +25,7 @@ def dectect_elements(image):
         boxes = result.boxes.cpu().numpy()
         for idx, box in enumerate(boxes): 
             box_data = {
-                "id": str(image)+"_"+str(idx),
+                "id": str(path)+"_"+str(idx),
                 "x1": box.xyxy[0][0].astype(int),
                 "y1": box.xyxy[0][1].astype(int),
                 "x2": box.xyxy[0][2].astype(int),
@@ -32,8 +35,8 @@ def dectect_elements(image):
 
             response.append(box_data)
 
-    json_response = json.dumps(response, default=np_encoder) 
-    return json_response
+    # json_response = json.dumps(response, default=np_encoder) 
+    return response
 
 
 if __name__ == '__main__':
