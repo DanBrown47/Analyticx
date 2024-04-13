@@ -9,6 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from utils import Calculate_hash
 from rabbit import push_to_queue
+from operationsWeavite import insert_to_weavite
 
 load_dotenv()
 
@@ -97,7 +98,8 @@ def save_frame(image, frame_path):
         print(source_file, "successfully uploaded as object", destination_file, "to bucket", bucket_name,
         )
         push_to_queue(frame_path)
-        os.remove(frame_path)
+        insert_to_weavite(frame_path)
+        # os.remove(frame_path)
 
     except Exception as e:
         print(f'Error sending the frame: {e}')
