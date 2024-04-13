@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            text-align: center;
+        }
+        input[type="text"],
+        input[type="datetime-local"] {
+            padding: 10px;
+            margin: 5px;
+            width: 200px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vehicle Search</h1>
+        <form action="/search_analytics" method="post">
+            <input type="text" name="vehicle_type" placeholder="Vehicle Type">
+            <br>
+            <input type="datetime-local" name="start_time" placeholder="Start Time">
+            <br>
+            <input type="datetime-local" name="end_time" placeholder="End Time">
+            <br>
+            <input type="text" name="vehicle_color" placeholder="Vehicle Color">
+            <br>
+            <input type="text" name="video_name" placeholder="Video Name">
+            <br>
+            <input type="submit" value="Search">
+        </form>
+    </div>
+</body>
+</html>

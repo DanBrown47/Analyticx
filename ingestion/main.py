@@ -39,10 +39,24 @@ class Frames(db.Model):
     frame_path = db.Column(db.String(1000), nullable=False) # Minio Path
     processed = db.Column(db.Boolean, default=False)
     text = db.Column(db.String(10000), nullable=True)
-    color = db.Column(db.String(10000), nullable=True)
 
     def __repr__(self):
         return '<Video %r>' % self.id
+
+class Dectections(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    frame_id = db.Column(db.Integer, db.ForeignKey('frames.id'), nullable=False)
+    x1 = db.Column(db.Integer, nullable=False)
+    y1 = db.Column(db.Integer, nullable=False)
+    x2 = db.Column(db.Integer, nullable=False)
+    y2 = db.Column(db.Integer, nullable=False)
+    obj = db.Column(db.String(100), nullable=False)
+    color = db.Column(db.String(100), nullable=False)
+    label = db.Column(db.String(100), nullable=False)
+    ocr = db.Column(db.String(100), nullable=True)
+
+    def __repr__(self):
+        return '<Detection %r>' % self.id
 
 
 with app.app_context():   # Ensures proper context
@@ -88,6 +102,15 @@ def save_frame(image, frame_path):
     except Exception as e:
         print(f'Error sending the frame: {e}')
 
+@app.route('/search')
+def search():
+    return render_template('search.html')
+
+@app.route('/search_analytics', methods=['POST'])
+def search_analytics():
+
+    pass
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -103,7 +126,7 @@ def process_video():
     
     if file.filename == '':
         # return redirect(request.url) # TODO: Add error message
-        render_template('error.html',error_type="empty_filename")
+        render_template('error.html', error_type="empty_filename")
 
     if file:
         video_path = os.path.join('uploads', file.filename)
@@ -130,7 +153,10 @@ def process_video():
                 minutes = int((timestamp % 3600) // 60)  # Calculate minutes
                 seconds = int(timestamp % 60)  # Calculate seconds
 
-                frame_path = os.path.join('frames', f'frame{hours}h-{minutes}m-{seconds}s.jpg')
+                # TODO : Make sure its a secure filename
+                frame_path = os.path.join('frames',file.filename, f'frame{hours}h-{minutes}m-{seconds}s.jpg')
+                if not os.path.exists(os.path.join('frames',file.filename)):
+                    os.makedirs(os.path.join('frames',file.filename)) # TODO : Double check the logic with hash
 
                 try:
                     db_entry_frame = Frames(video_id=db_entry_video.id, frame_path=frame_path)
