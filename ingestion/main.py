@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
 import cv2
 import os
 from minio import Minio
@@ -9,7 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from utils import Calculate_hash
 from rabbit import push_to_queue
-from operationsWeavite import insert_to_weavite
+# from operationsWeavite import insert_to_weavite
 
 load_dotenv()
 
@@ -44,7 +44,7 @@ class Frames(db.Model):
     def __repr__(self):
         return '<Video %r>' % self.id
 
-class Dectections(db.Model):
+class Dectections(db.Model): # This should be exactly same inside the dectection application too
     id = db.Column(db.Integer, primary_key=True)
     frame_id = db.Column(db.Integer, db.ForeignKey('frames.id'), nullable=False)
     x1 = db.Column(db.Integer, nullable=False)
@@ -53,14 +53,16 @@ class Dectections(db.Model):
     y2 = db.Column(db.Integer, nullable=False)
     obj = db.Column(db.String(100), nullable=False)
     color = db.Column(db.String(100), nullable=False)
-    label = db.Column(db.String(100), nullable=False)
-    ocr = db.Column(db.String(100), nullable=True)
+    label = db.Column(db.String(1000), nullable=False)
+    ocr = db.Column(db.String(10000), nullable=True)
+    video_name  = db.Column(db.String(1000), nullable=False)
+    snapshot_time = db.Column(db.DateTime, nullable=False)
 
     def __repr__(self):
         return '<Detection %r>' % self.id
 
 
-with app.app_context():   # Ensures proper context
+with app.app_context():   # Ensures proper context only needs to run incase table does not exist TODO
     print("Creating tables...")
     db.create_all()
     print("Tables created")
@@ -98,8 +100,8 @@ def save_frame(image, frame_path):
         print(source_file, "successfully uploaded as object", destination_file, "to bucket", bucket_name,
         )
         push_to_queue(frame_path)
-        insert_to_weavite(frame_path)
-        # os.remove(frame_path)
+        # insert_to_weavite(frame_path)
+        os.remove(frame_path)
 
     except Exception as e:
         print(f'Error sending the frame: {e}')
@@ -116,6 +118,26 @@ def search_analytics():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+
+@app.route('/get_all_objects')
+def get_all_objects():
+    unique_objects = Dectections.query.with_entities(Dectections.obj).distinct().all()
+    res =  [obj[0] for obj in unique_objects]
+    return jsonify(res)
+
+@app.route('/get_all_colors')
+def get_all_colors():
+    unique_colors = Dectections.query.with_entities(Dectections.color).distinct().all()
+    res =  [color[0] for color in unique_colors]
+    return jsonify(res)
+
+@app.route('/get_all_videos')
+def get_all_videos():
+    videos = Videos.query.with_entities(Videos.name).distinct().all()
+    res =  [video.name for video in videos]
+    return jsonify(res)
 
 @app.route('/process_video', methods=['POST'])
 def process_video():
@@ -147,7 +169,9 @@ def process_video():
             db.session.commit()
         except Exception as e:
             print(f'Error adding video to database: {e}')
+        
 
+        today = datetime.today()
         while success:
             if count % frame_interval == 0:
                 timestamp = vidcap.get(cv2.CAP_PROP_POS_MSEC) // 1000  # Get timestamp in seconds
@@ -156,7 +180,7 @@ def process_video():
                 seconds = int(timestamp % 60)  # Calculate seconds
 
                 # TODO : Make sure its a secure filename
-                frame_path = os.path.join('frames',file.filename, f'frame{hours}h-{minutes}m-{seconds}s.jpg')
+                frame_path = os.path.join('frames', file.filename, f'{today.year}-{today.month}-{today.day}-{hours}-{minutes}-{seconds}.jpg')
                 if not os.path.exists(os.path.join('frames',file.filename)):
                     os.makedirs(os.path.join('frames',file.filename)) # TODO : Double check the logic with hash
 
