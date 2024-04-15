@@ -58,6 +58,9 @@ class Dectections(db.Model): # This should be exactly same inside the dectection
     video_name  = db.Column(db.String(1000), nullable=False)
     snapshot_time = db.Column(db.DateTime, nullable=False)
 
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    
     def __repr__(self):
         return '<Detection %r>' % self.id
 
@@ -112,9 +115,37 @@ def search():
 
 @app.route('/search_analytics', methods=['POST'])
 def search_analytics():
+    if request.method == 'POST':
+        vehicle_type = request.form.get('vehicle_type')
+        start_time = request.form.get('start_time')  # Assuming format is compatible with SQLAlchemy
+        end_time = request.form.get('end_time')  # Assuming format is compatible with SQLAlchemy
+        vehicle_color = request.form.get('vehicle_color')
+        video_name = request.form.get('video_name')
 
-    pass
+        print("Values incoming are ")
+        print(vehicle_color, video_name, end_time, start_time, vehicle_color, video_name)
+        query = Dectections.query
 
+        filters = []
+        if vehicle_type:
+            filters.append(Dectections.obj.like('%' + vehicle_type + '%'))
+        if start_time:
+            filters.append(Dectections.snapshot_time >= start_time)
+        if end_time:
+            filters.append(Dectections.snapshot_time <= end_time)
+        if vehicle_color:
+            filters.append(Dectections.color.like('%' + vehicle_color + '%'))
+        if video_name:
+            filters.append(Dectections.video_name.like('%' + video_name + '%'))
+
+        # Apply filters to the query if any exist
+        if filters:
+            query = query.filter(*filters)
+
+        results = query.all()
+        data = [result.as_dict() for result in results]          
+        return render_template('results.html', data=data)
+          
 @app.route('/')
 def index():
     return render_template('index.html')

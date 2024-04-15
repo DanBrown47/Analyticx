@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Analytics Results</title>
+    <style>
+
+body {
+    font-family: sans-serif;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #06b0f4;
+}
+
+#image-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+#image-popup.hidden {
+    display: none;
+}
+
+#image-popup img {
+    max-width: 80%;
+    max-height: 80%;
+}
+
+#popup-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#popup-close:hover {
+    color: #ccc;
+}
+        </style>
+</head>
+<body>
+    <h1>Search Analytics Results</h1>
+    <table id="results-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Object</th>
+                <th>Color</th>
+                <th>Video Name</th>
+                <th>Frame</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+            <tr id="eachrows">
+                <td>{{ item.id }}</td>
+                <td>{{ item.obj }}</td>
+                <td>{{ item.color }}</td>
+                <td>{{ item.video_name }}</td>
+                <td>{{ item.label.split('/')[2] }}</td>  <td>{{ item.snapshot_time }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="image-popup" class="hidden">
+        <img id="popup-image" src="">
+        <span id="popup-close">&times;</span>
+    </div>
+
+    <script>
+
+Copy code
+const tbody = document.querySelector('tbody');
+const imagePopup = document.getElementById('image-popup');
+const popupCloseBtn = document.getElementById('popup-close');
+const popupImage = document.getElementById('popup-image');
+
+// Function to handle row click event
+function handleRowClick(data) {
+  const minioUrl = document.getElementById('minio-url').textContent;  // Get Minio URL from template
+  const imageUrl = `${minioUrl}/${data.label}`;
+
+  // Fetch the image
+  fetch(imageUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch image');
+      }
+      return response.blob();
+    })
+    .then(blob => {
+      const objectURL = URL.createObjectURL(blob);
+      popupImage.src = objectURL;
+      imagePopup.classList.remove('hidden');
+    })
+    .catch(error => {
+      console.error('Error fetching image:', error);
+      alert('Failed to load image');
+    });
+}
+
+// Add click event listener to each row
+tbody.addEventListener('click', event => {
+    console.log("Clicked");
+  const row = event.target.closest('tr');
+  if (!row) return;  // If not a row, return
+
+  const rowData = {
+    id: row.cells[0].textContent,
+    obj: row.cells[1].textContent,
+    color: row.cells[2].textContent,
+    video_name: row.cells[3].textContent,
+    label: row.cells[4].textContent,
+    snapshot_time: row.cells[5].textContent
+  };
+
+  handleRowClick(rowData);
+});
+
+// Function to close image popup
+function closeImagePopup() {
+  imagePopup.classList.add('hidden');
+  popupImage.src = '';
+  URL.revokeObjectURL(popupImage.src);  // Revoke object URL to avoid memory leaks
+}
+
+// Add click event listener to popup close button
+popupCloseBtn.addEventListener('click', closeImagePopup);
+
+    </script>
+</body>
+</html>

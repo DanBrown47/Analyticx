@@ -6,61 +6,147 @@
     <title>Search Board</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        form {
-            text-align: center;
-        }
-        input[type="text"],
-        input[type="datetime-local"] {
-            padding: 10px;
-            margin: 5px;
-            width: 200px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        input[type="submit"] {
-            padding: 10px 20px;
-            margin: 5px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f2f2f2;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+    font-weight: bold;
+}
+
+select,  input[type="datetime-local"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+select, input[type="datetime-local"]:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+button[type="submit"] {
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+button[type="submit"]:hover {
+    background-color: #ccc;  /* Light gray color for reset button */
+    color: #0088ff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    margin-left: 10px;
+
+
+button[type="reset"] {
+    background-color: #ccc;  /* Light gray color for reset button */
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    margin-left: 10px;
+}
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Main Search </h1>
         <form action="/search_analytics" method="post">
-            <input type="text" name="vehicle_type" placeholder="Vehicle Type">
+            <label for="vehicle_type">Vehicle Type:</label>
+            <select id="vehicle_type" name="vehicle_type">
+                <option value="">Select Vehicle Type</option>
+                </select>
+            <br>
+            <label for="start_time">Start Time:</label>
             <br>
             <input type="datetime-local" name="start_time" placeholder="Start Time">
             <br>
+            <label for="end_time">End Time:</label>
+            <br>
             <input type="datetime-local" name="end_time" placeholder="End Time">
             <br>
-            <input type="text" name="vehicle_color" placeholder="Vehicle Color">
+            <label for="vehicle_color">Vehicle Color:</label>
+            <select id="vehicle_color" name="vehicle_color">
+                <option value="">Select Vehicle Color</option>
+                </select>
             <br>
-            <input type="text" name="video_name" placeholder="Video Name">
+            <label for="video_name">Video Name:</label>
+            <select id="video_name" name="video_name">
+                <option value="">Select Video Name</option>
+                </select>
             <br>
             <input type="submit" value="Search">
+            <button type="reset" value="Reset">Reset</button>
+
         </form>
     </div>
 </body>
+
+<script>
+    const vehicleTypeSelect = document.getElementById('vehicle_type');
+const vehicleColorSelect = document.getElementById('vehicle_color');
+const videoNameSelect = document.getElementById('video_name');
+
+// Function to create and add an option element to a dropdown
+function addOption(select, text) {
+  const option = document.createElement('option');
+  option.value = text;
+  option.textContent = text;
+  select.appendChild(option);
+}
+
+// Function to fetch data and populate dropdowns
+async function fetchData() {
+  try {
+    const vehicleTypesResponse = await fetch('/get_all_objects');
+    const vehicleColorsResponse = await fetch('/get_all_colors');
+    const videoNamesResponse = await fetch('/get_all_videos');
+
+    const vehicleTypes = await vehicleTypesResponse.json();
+    const vehicleColors = await vehicleColorsResponse.json();
+    const videoNames = await videoNamesResponse.json();
+
+    vehicleTypes.forEach(type => addOption(vehicleTypeSelect, type));
+    vehicleColors.forEach(color => addOption(vehicleColorSelect, color));
+    videoNames.forEach(name => addOption(videoNameSelect, name));
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+}
+
+fetchData();
+</script>
 </html>
